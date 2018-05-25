@@ -1,5 +1,18 @@
+var express = require('express');
+var bodyParser = require('body-parser');
 
-var mongoose = require('mongoose');
+var {mongoose} = require('./db/mongoose');
+var {Todo} = require('./models/todo');
+var {Users} = require('./models/user');
 
-mongoose.Promise = global.Promise ;
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+var app = express();
+
+app.use(bodyParser.json());
+
+app.post('/todos',(req,res) => {
+  console.log(req.body);
+});
+
+app.listen(3000,() => {
+  console.log('Started on port 3000');
+});
