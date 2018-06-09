@@ -104,14 +104,14 @@ app.patch('/todos/:id',(req,res) => {
 app.post('/users',(req,res) => {
 
   var body = _.pick(req.body,['email','password']);
-  console.log(body);
+  //console.log(body);
   var user = new Users(body);
-  console.log(user);
+  //console.log(user);
   user.save().then(() => {
     //res.status(200).send(user);
     return user.generateAuthToken();
   }).then((token) => {
-    console.log(token);
+    //console.log(token);
     res.header('x-auth',token).send(user);
   }).catch((e) => {
       res.status(400).send(e);
