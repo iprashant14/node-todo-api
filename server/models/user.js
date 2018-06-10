@@ -42,9 +42,10 @@ UserSchema.methods.toJSON = function () {
 UserSchema.methods.generateAuthToken = function() {
   var user = this;
   var access = 'auth';
-  var token = jwt.sign({_id:user._id.toHexString(),access},'abc123').toString();
+  var token = jwt.sign({_id:user._id.toHexString(),access},process.env.JWT_SECRET).toString();
   user.tokens = user.tokens.concat([{access,token}]);
   return user.save().then(() => {
+  //  console.log("returning token ",token);
     return token;
   });
 };
@@ -53,7 +54,7 @@ UserSchema.statics.findByToken = function(token) {
   var user = this;
   var decoded ;
   try{
-    decoded = jwt.verify(token,'abc123');
+    decoded = jwt.verify(token,process.env.SECRET);
   }catch(e){
     // return new Promise((resolve,reject) => {
     //   reject();
@@ -65,6 +66,31 @@ UserSchema.statics.findByToken = function(token) {
     '_id' : decoded._id,
     'tokens.token' : token,
     'tokens.access' : 'auth'
+  });
+};
+
+UserSchema.statics.findByCredentials = function(email,password) {
+  var user = this;
+  //console.log("Cre ",email);
+  return user.findOne({email}).then((user) => {
+    if(!user){
+      return Promise.reject();
+    }
+    //console.log(user);
+    return new Promise((resolve,reject) => {
+      bcrypt.compare(password,user.password,(err,res) => {
+        //console.log("sdfsdf",res);
+        if(res)
+        {
+          //console.log(user);
+          resolve(user);
+          //console.log("After Resolve");
+        }
+        //console.log("Before Reject");
+        reject();
+      });
+
+    });
   });
 };
 
@@ -86,6 +112,15 @@ UserSchema.pre('save',function(next) {
       next();
     }
 });
+
+UserSchema.methods.removeToken = function (token) {
+  user = this ;
+  return user.update({
+    $pull : {
+      tokens : { token }
+    }
+  });
+}
 
 var Users = mongoose.model('User', UserSchema);
 
